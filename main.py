@@ -13,10 +13,7 @@ from jsmitsubishi import (
     get_inventory_count as get_jsmitsubishi_count,
     get_inventory_list,
 )
-from elmoraautosales2 import (
-    get_inventory_count as get_elmora_count,
-    get_inventory_list as get_elmora_list,
-)
+from elmoraautosales2 import get_inventory_list as get_elmora_list
 from jrrmotorsales import get_inventory_list as get_jrr_list
 
 app = FastAPI()
