@@ -17,7 +17,7 @@ headers = {
     "accept-language": "en-US,en;q=0.9",
     "cache-control": "max-age=0",
     "cookie": 'hammer-chat={"minimized":true,"lastOpenedTimestamp":0,"uuid":"8ad46620-fbbf-4e8b-830e-6cdbaafd3324"}; _gid=GA1.2.1563192244.1749664298; _ga_6P5L4GZ20D=GS2.1.s1749664297$o1$g1$t1749664931$j59$l0$h0; _ga=GA1.1.2115226872.1749664298; _ga_LH5WKR0S86=GS2.2.s1749664353$o1$g1$t1749664935$j60$l0$h0; datadome=ZOGxBJVBE8vy3A9U~Bb5DgQQL_U0b14Bdco0nCrLFwtIAhgExbFBkCA4KEdExVxmUKsqQXSsJRBn7veWNMt_uq~epWMX8bWoDG3KGKRya43CSB5u6Ai9Hxna6~KhPhfi',
-    "user-agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/132.0.0.0 Safari/537.36",
+    "user-agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/132.0.0.0 Safari/537.36"
 }
 
 
