@@ -15,6 +15,7 @@ from jsmitsubishi import (
 )
 from elmoraautosales2 import get_inventory_list as get_elmora_list
 from jrrmotorsales import get_inventory_list as get_jrr_list
+from savvyautosale import get_inventory_list as get_savvy_list
 
 app = FastAPI()
 
@@ -62,6 +63,13 @@ class ElmoraAutoSales2Request(BaseModel):
 
 
 class JRRMotorSalesRequest(BaseModel):
+    password: str
+
+    class Config:
+        json_schema_extra = {"example": {"password": "0724"}}
+
+
+class SavvyAutoSaleRequest(BaseModel):
     password: str
 
     class Config:
@@ -208,6 +216,20 @@ async def get_jrr_inventory(request: JRRMotorSalesRequest):
     try:
         # Get all inventory
         inventory = get_jrr_list()
+
+        return {"inventory": inventory}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.post("/savvyautosale")
+async def get_savvy_inventory(request: SavvyAutoSaleRequest):
+    if request.password != "0724":  # Using the same password as other endpoints
+        raise HTTPException(status_code=401, detail="Invalid password")
+
+    try:
+        # Get all inventory
+        inventory = get_savvy_list()
 
         return {"inventory": inventory}
     except Exception as e:
