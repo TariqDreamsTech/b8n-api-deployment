@@ -6,60 +6,14 @@ import time
 # Target URL
 url = "https://www.elmoraautosales2.com/cars-for-sale"
 
-PROXIES = {
-    "http": None,
-    "https": None
-}
-
 # Headers
 headers = {
     "accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7",
     "accept-language": "en-US,en;q=0.9",
     "cache-control": "max-age=0",
     "cookie": 'hammer-chat={"minimized":true,"lastOpenedTimestamp":0,"uuid":"8ad46620-fbbf-4e8b-830e-6cdbaafd3324"}; _gid=GA1.2.1563192244.1749664298; _ga_6P5L4GZ20D=GS2.1.s1749664297$o1$g1$t1749664931$j59$l0$h0; _ga=GA1.1.2115226872.1749664298; _ga_LH5WKR0S86=GS2.2.s1749664353$o1$g1$t1749664935$j60$l0$h0; datadome=ZOGxBJVBE8vy3A9U~Bb5DgQQL_U0b14Bdco0nCrLFwtIAhgExbFBkCA4KEdExVxmUKsqQXSsJRBn7veWNMt_uq~epWMX8bWoDG3KGKRya43CSB5u6Ai9Hxna6~KhPhfi',
-    "user-agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/132.0.0.0 Safari/537.36"
+    "user-agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/132.0.0.0 Safari/537.36",
 }
-
-
-def get_inventory_count():
-    """
-    Get the total number of vehicles by checking the first page
-    """
-    try:
-        params = {
-            "PageNumber": "1",
-            "Sort": "MakeAsc",
-            "StockNumber": "",
-            "Condition": "",
-            "BodyStyle": "",
-            "Make": "",
-            "MaxPrice": "",
-            "Mileage": "",
-            "SoldStatus": "AllVehicles",
-        }
-
-        response = requests.get(url, headers=headers, params=params,proxies=PROXIES)
-        soup = BeautifulSoup(response.text, "html.parser")
-        json_ld_scripts = soup.find_all("script", type="application/ld+json")
-
-        count = 0
-        for script in json_ld_scripts:
-            try:
-                data = json.loads(script.string)
-                if isinstance(data, dict) and data.get("@type") == "Vehicle":
-                    count += 1
-                elif isinstance(data, list):
-                    for item in data:
-                        if isinstance(item, dict) and item.get("@type") == "Vehicle":
-                            count += 1
-            except Exception as e:
-                print(f"Error parsing script: {e}")
-
-        print(f"Total vehicles found on first page: {count}")
-        return count
-    except Exception as e:
-        print(f"Error getting inventory count: {str(e)}")
-        return 0
 
 
 def get_inventory_list():
@@ -84,7 +38,7 @@ def get_inventory_list():
                 "SoldStatus": "AllVehicles",
             }
 
-            response = requests.get(url, headers=headers, params=params,proxies=PROXIES)
+            response = requests.get(url, headers=headers, params=params)
             soup = BeautifulSoup(response.text, "html.parser")
             json_ld_scripts = soup.find_all("script", type="application/ld+json")
 
@@ -111,7 +65,7 @@ def get_inventory_list():
                 print(f"No vehicles found on page {page_number}. Stopping.")
                 break
 
-            # Check if a "Next" page exists
+            # Check if a "Next" page exists by looking for a pagination link
             next_button = soup.select_one(
                 'a.data-button-next-page[data-trackingid="search-pagination-next"]'
             )
