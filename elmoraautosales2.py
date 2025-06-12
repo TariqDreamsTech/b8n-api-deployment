@@ -6,6 +6,11 @@ import time
 # Target URL
 url = "https://www.elmoraautosales2.com/cars-for-sale"
 
+PROXIES = {
+    "http": "http://henrywoowgraphics:udFdNect4I@185.240.121.143:50100",
+    "https": "http://henrywoowgraphics:udFdNect4I@185.240.121.143:50100",
+}
+
 # Headers
 headers = {
     "accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7",
@@ -33,7 +38,7 @@ def get_inventory_count():
             "SoldStatus": "AllVehicles",
         }
 
-        response = requests.get(url, headers=headers, params=params)
+        response = requests.get(url, headers=headers, params=params,proxies=PROXIES)
         soup = BeautifulSoup(response.text, "html.parser")
         json_ld_scripts = soup.find_all("script", type="application/ld+json")
 
@@ -79,7 +84,7 @@ def get_inventory_list():
                 "SoldStatus": "AllVehicles",
             }
 
-            response = requests.get(url, headers=headers, params=params)
+            response = requests.get(url, headers=headers, params=params,proxies=PROXIES)
             soup = BeautifulSoup(response.text, "html.parser")
             json_ld_scripts = soup.find_all("script", type="application/ld+json")
 
