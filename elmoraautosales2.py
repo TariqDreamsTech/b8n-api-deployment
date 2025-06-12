@@ -7,8 +7,8 @@ import time
 url = "https://www.elmoraautosales2.com/cars-for-sale"
 
 PROXIES = {
-    "http": "http://henrywoowgraphics:udFdNect4I@185.240.121.143:50100",
-    "https": "http://henrywoowgraphics:udFdNect4I@185.240.121.143:50100",
+    "http": None,
+    "https": None
 }
 
 # Headers
