@@ -8,6 +8,16 @@ import json
 import re
 import time
 from tota_vehicle_count import get_total_vehicle_count
+from autoplaza import get_inventory_count, get_inventory_page_list
+from jsmitsubishi import (
+    get_inventory_count as get_jsmitsubishi_count,
+    get_inventory_list,
+)
+from elmoraautosales2 import (
+    get_inventory_count as get_elmora_count,
+    get_inventory_list as get_elmora_list,
+)
+from jrrmotorsales import get_inventory_list as get_jrr_list
 
 app = FastAPI()
 
@@ -27,6 +37,34 @@ total_vehicles_count = get_total_vehicle_count()
 
 # ---- Request Model ----
 class ScrapeInput(BaseModel):
+    password: str
+
+    class Config:
+        json_schema_extra = {"example": {"password": "0724"}}
+
+
+class AutoplazaRequest(BaseModel):
+    password: str
+
+    class Config:
+        json_schema_extra = {"example": {"password": "0724"}}
+
+
+class JSMitsubishiRequest(BaseModel):
+    password: str
+
+    class Config:
+        json_schema_extra = {"example": {"password": "0724"}}
+
+
+class ElmoraAutoSales2Request(BaseModel):
+    password: str
+
+    class Config:
+        json_schema_extra = {"example": {"password": "0724"}}
+
+
+class JRRMotorSalesRequest(BaseModel):
     password: str
 
     class Config:
@@ -112,3 +150,68 @@ async def scrape(data: ScrapeInput):
 
     print(f"\n🎉 Total vehicles collected: {len(all_vehicles)}")
     return {"count": len(all_vehicles), "vehicles": all_vehicles}
+
+
+@app.post("/autoplaza")
+async def get_autoplaza_inventory(request: AutoplazaRequest):
+    if request.password != "0724":  # Using the same password as the scrape endpoint
+        raise HTTPException(status_code=401, detail="Invalid password")
+
+    try:
+        # Get total count first
+        total_count = get_inventory_count()
+
+        # Get all inventory (using default range)
+        inventory = get_inventory_page_list(
+            0, 7000
+        )  # Using max range from base payload
+
+        return {"total_count": total_count, "inventory": inventory}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.post("/jsmitsubishi")
+async def get_jsmitsubishi_inventory(request: JSMitsubishiRequest):
+    if request.password != "0724":  # Using the same password as other endpoints
+        raise HTTPException(status_code=401, detail="Invalid password")
+
+    try:
+        # Get total count first
+        total_count = get_jsmitsubishi_count()
+
+        # Get all inventory
+        inventory = get_inventory_list()
+
+        return {"total_count": total_count, "inventory": inventory}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.post("/elmoraautosales2")
+async def get_elmora_inventory(request: ElmoraAutoSales2Request):
+    if request.password != "0724":  # Using the same password as other endpoints
+        raise HTTPException(status_code=401, detail="Invalid password")
+
+    try:
+
+        # Get all inventory
+        inventory = get_elmora_list()
+
+        return {"inventory": inventory}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.post("/jrrmotorsales")
+async def get_jrr_inventory(request: JRRMotorSalesRequest):
+    if request.password != "0724":  # Using the same password as other endpoints
+        raise HTTPException(status_code=401, detail="Invalid password")
+
+    try:
+        # Get all inventory
+        inventory = get_jrr_list()
+
+        return {"inventory": inventory}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
