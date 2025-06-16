@@ -90,7 +90,10 @@ def get_inventory_list():
                     # Get image
                     img_div = vehicle.find("div", class_="i10r_image")
                     img_tag = img_div.find("img")
-                    img_url = img_tag["src"] if img_tag else ""
+                    img_url = (
+                        img_tag.get("data-src") or img_tag.get("src") if img_tag else ""
+                    )
+                    print(img_url)
 
                     if img_url == DEFAULT_IMAGE_URL:
                         continue  # Skip default image listings
