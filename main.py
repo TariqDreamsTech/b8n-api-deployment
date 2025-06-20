@@ -16,6 +16,10 @@ from jsmitsubishi import (
 from elmoraautosales2 import get_inventory_list as get_elmora_list
 from jrrmotorsales import get_inventory_list as get_jrr_list
 from savvyautosale import get_inventory_list as get_savvy_list
+from elmwood import get_inventory_list as get_elmwood_list
+from xclusive_nj import get_inventory_list as get_xclusive_nj_list
+from northwest_indiana import get_inventory_list as get_northwest_indiana_list
+from mass_motors import get_inventory_list as get_mass_motors_list
 
 app = FastAPI()
 
@@ -70,6 +74,41 @@ class JRRMotorSalesRequest(BaseModel):
 
 
 class SavvyAutoSaleRequest(BaseModel):
+    password: str
+
+    class Config:
+        json_schema_extra = {"example": {"password": "0724"}}
+
+
+class ElmwoodAutoSalesRequest(BaseModel):
+    password: str
+
+    class Config:
+        json_schema_extra = {"example": {"password": "0724"}}
+
+
+class Elmwood2AutoSalesRequest(BaseModel):
+    password: str
+
+    class Config:
+        json_schema_extra = {"example": {"password": "0724"}}
+
+
+class XclusiveNJRequest(BaseModel):
+    password: str
+
+    class Config:
+        json_schema_extra = {"example": {"password": "0724"}}
+
+
+class NorthwestIndianaRequest(BaseModel):
+    password: str
+
+    class Config:
+        json_schema_extra = {"example": {"password": "0724"}}
+
+
+class MassMotorsRequest(BaseModel):
     password: str
 
     class Config:
@@ -230,6 +269,62 @@ async def get_savvy_inventory(request: SavvyAutoSaleRequest):
     try:
         # Get all inventory
         inventory = get_savvy_list()
+
+        return {"inventory": inventory}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.post("/elmwood")
+async def get_elmwood_inventory(request: ElmwoodAutoSalesRequest):
+    if request.password != "0724":  # Using the same password as other endpoints
+        raise HTTPException(status_code=401, detail="Invalid password")
+
+    try:
+        # Get all inventory
+        inventory = get_elmwood_list()
+
+        return {"inventory": inventory}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.post("/xclusive_nj")
+async def get_xclusive_nj_inventory(request: XclusiveNJRequest):
+    if request.password != "0724":  # Using the same password as other endpoints
+        raise HTTPException(status_code=401, detail="Invalid password")
+
+    try:
+        # Get all inventory
+        inventory = get_xclusive_nj_list()
+
+        return {"inventory": inventory}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.post("/northwest_indiana")
+async def get_northwest_indiana_inventory(request: NorthwestIndianaRequest):
+    if request.password != "0724":  # Using the same password as other endpoints
+        raise HTTPException(status_code=401, detail="Invalid password")
+
+    try:
+        # Get all inventory
+        inventory = get_northwest_indiana_list()
+
+        return {"inventory": inventory}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.post("/mass_motors")
+async def get_mass_motors_inventory(request: MassMotorsRequest):
+    if request.password != "0724":  # Using the same password as other endpoints
+        raise HTTPException(status_code=401, detail="Invalid password")
+
+    try:
+        # Get all inventory
+        inventory = get_mass_motors_list()
 
         return {"inventory": inventory}
     except Exception as e:
