@@ -20,6 +20,7 @@ from elmwood import get_inventory_list as get_elmwood_list
 from xclusive_nj import get_inventory_list as get_xclusive_nj_list
 from northwest_indiana import get_inventory_list as get_northwest_indiana_list
 from mass_motors import get_inventory_list as get_mass_motors_list
+from motorsports_4042 import get_inventory_list as get_motorsports_4042_list
 
 app = FastAPI()
 
@@ -109,6 +110,13 @@ class NorthwestIndianaRequest(BaseModel):
 
 
 class MassMotorsRequest(BaseModel):
+    password: str
+
+    class Config:
+        json_schema_extra = {"example": {"password": "0724"}}
+
+
+class Motorsports4042Request(BaseModel):
     password: str
 
     class Config:
@@ -325,6 +333,20 @@ async def get_mass_motors_inventory(request: MassMotorsRequest):
     try:
         # Get all inventory
         inventory = get_mass_motors_list()
+
+        return {"inventory": inventory}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.post("/4042motorsports")
+async def get_4042motorsports_inventory(request: Motorsports4042Request):
+    if request.password != "0724":  # Using the same password as other endpoints
+        raise HTTPException(status_code=401, detail="Invalid password")
+
+    try:
+        # Get all inventory
+        inventory = get_motorsports_4042_list()
 
         return {"inventory": inventory}
     except Exception as e:
