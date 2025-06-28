@@ -18,7 +18,7 @@ PROXIES = {
 
 def get_total_pages():
     """Get total vehicle count and number of pages"""
-    url = BASE_URL + "/inventory/used-cars-willow-springs-nc?page=0&npp=25&st="
+    url = BASE_URL + "/inventory/used-cars-willow-springs-nc?page=0&npp=25&st=loc:1695"
     response = requests.get(url, headers=HEADERS, proxies=PROXIES)
     soup = BeautifulSoup(response.text, "lxml")
 
@@ -70,7 +70,7 @@ def get_inventory_list():
 
     for page in range(0, pages):
         print(f"Scraping Page {page + 1}/{pages}")
-        url = f"{BASE_URL}/inventory/used-cars-willow-springs-nc?page={page}&npp=25&st="
+        url = f"{BASE_URL}/inventory/used-cars-willow-springs-nc?page={page}&npp=25&st=loc:1695"
         response = requests.get(url, headers=HEADERS, proxies=PROXIES)
         soup = BeautifulSoup(response.text, "lxml")
         listings = parse_vehicle_data(soup)
