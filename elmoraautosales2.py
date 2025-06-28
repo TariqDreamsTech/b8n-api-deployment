@@ -11,7 +11,7 @@ headers = {
     "accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7",
     "accept-language": "en-US,en;q=0.9",
     "cache-control": "max-age=0",
-    "cookie": 'hammer-chat={"minimized":true,"lastOpenedTimestamp":0,"uuid":"8ad46620-fbbf-4e8b-830e-6cdbaafd3324"}; _gid=GA1.2.1563192244.1749664298; _ga_6P5L4GZ20D=GS2.1.s1749664297$o1$g1$t1749664931$j59$l0$h0; _ga=GA1.1.2115226872.1749664298; _ga_LH5WKR0S86=GS2.2.s1749664353$o1$g1$t1749664935$j60$l0$h0; datadome=ZOGxBJVBE8vy3A9U~Bb5DgQQL_U0b14Bdco0nCrLFwtIAhgExbFBkCA4KEdExVxmUKsqQXSsJRBn7veWNMt_uq~epWMX8bWoDG3KGKRya43CSB5u6Ai9Hxna6~KhPhfi',
+    "cookie": "datadome=wX5qKaUjv99LcvWHfn4DG6AxGW6tZbvF2O0jF0ipmA7lOX9lWZVsvjJlZkVQQxIt5HZc~MThHE69zNictABVG543LEjyJ~_MvAIb6D_YTvg5H38_~G2m~_IEsG9umeLn; hammer-chat={%22minimized%22:true%2C%22lastOpenedTimestamp%22:0%2C%22uuid%22:%226bc0cf2a-3f0d-499e-8444-fbd1be4c1444%22}; _ga_6P5L4GZ20D=GS2.1.s1751131871$o3$g0$t1751131871$j60$l0$h0; _ga=GA1.2.743143099.1749767440; _ga_LH5WKR0S86=GS2.2.s1751131872$o2$g0$t1751131872$j60$l0$h0; _gid=GA1.2.980508034.1751131872; _gat=1; _gat_UA-125642170-1=1",
     "user-agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/132.0.0.0 Safari/537.36",
 }
 
