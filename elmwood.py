@@ -85,6 +85,11 @@ def extract_vehicle_data(html):
 
         title_tag = div.select_one("h4.vehicleTitleH4 a")
         data["Title"] = title_tag.get_text(strip=True) if title_tag else None
+        data["VDP URL"] = (
+            "https://www.elmwoodautosalesri.com" + title_tag["href"]
+            if title_tag and title_tag.has_attr("href")
+            else None
+        )
 
         trim_tag = div.select_one("a.i17r_TrimLevel")
         data["Trim"] = trim_tag.get_text(strip=True) if trim_tag else None
