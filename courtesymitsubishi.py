@@ -120,8 +120,6 @@ def get_courtesymitsubishi_list():
             "make": make.title(),
             "model": model.title(),
             "price": price,
-            "trim": trim.title(),
-            "stock": stock,
         }
 
         formatted_vehicles.append(formatted_vehicle)
