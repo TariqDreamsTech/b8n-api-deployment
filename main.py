@@ -22,6 +22,7 @@ from northwest_indiana import get_inventory_list as get_northwest_indiana_list
 from mass_motors import get_inventory_list as get_mass_motors_list
 from motorsports_4042 import get_inventory_list as get_motorsports_4042_list
 from pujolsautosale import get_inventory_list as get_pujolsautosale_list
+from courtesymitsubishi import get_courtesymitsubishi_list
 
 app = FastAPI()
 
@@ -125,6 +126,13 @@ class Motorsports4042Request(BaseModel):
 
 
 class PujolsAutoSaleRequest(BaseModel):
+    password: str
+
+    class Config:
+        json_schema_extra = {"example": {"password": "0724"}}
+
+
+class CourtesyMitsubishiRequest(BaseModel):
     password: str
 
     class Config:
@@ -367,6 +375,17 @@ async def get_pujolsautosale_inventory(request: PujolsAutoSaleRequest):
         raise HTTPException(status_code=401, detail="Invalid password")
     try:
         inventory = get_pujolsautosale_list()
+        return {"inventory": inventory}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.post("/courtesymitsubishi")
+async def get_courtesymitsubishi_inventory(request: CourtesyMitsubishiRequest):
+    if request.password != "0724":
+        raise HTTPException(status_code=401, detail="Invalid password")
+    try:
+        inventory = get_courtesymitsubishi_list()
         return {"inventory": inventory}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
