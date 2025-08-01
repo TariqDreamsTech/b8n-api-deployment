@@ -81,6 +81,14 @@ def extract_vehicle_data(html):
     all_data = []
 
     for div in soup.select("div.i17r_mainInfo"):
+        # Check if this vehicle has the problematic image
+        img_tag = div.select_one("img.i17r_mainImg")
+        if img_tag and img_tag.has_attr("src"):
+            img_src = img_tag["src"]
+            if "5146_newarrivalphoto.jpg" in img_src:
+                print(f"Excluding vehicle with image: {img_src}")
+                continue  # Skip this vehicle record
+
         data = {}
 
         title_tag = div.select_one("h4.vehicleTitleH4 a")
