@@ -33,8 +33,8 @@ HEADERS = {
 }
 
 PROXIES = {
-    "http": "http://henrywoowgraphics:udFdNect4I@185.240.121.143:50100",
-    "https": "http://henrywoowgraphics:udFdNect4I@185.240.121.143:50100",
+    "http": "http://henrywoowgraphics:udFdNect4I@89.116.56.101:50100",
+    "https": "http://henrywoowgraphics:udFdNect4I@89.116.56.101:50100",
 }
 
 total_vehicles_count = get_total_vehicle_count()
@@ -389,3 +389,4 @@ async def get_courtesymitsubishi_inventory(request: CourtesyMitsubishiRequest):
         return {"inventory": inventory}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
