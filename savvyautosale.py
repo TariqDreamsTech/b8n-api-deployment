@@ -14,8 +14,8 @@ HEADERS = {
 }
 
 PROXIES = {
-    "http": "http://henrywoowgraphics:udFdNect4I@185.240.121.143:50100",
-    "https": "http://henrywoowgraphics:udFdNect4I@185.240.121.143:50100",
+    "http": "http://henrywoowgraphics:udFdNect4I@89.116.56.101:50100",
+    "https": "http://henrywoowgraphics:udFdNect4I@89.116.56.101:50100",
 }
 
 
