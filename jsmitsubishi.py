@@ -2,8 +2,8 @@ import math
 import requests
 
 PROXIES = {
-    "http": "http://henrywoowgraphics:udFdNect4I@185.240.121.143:50100",
-    "https": "http://henrywoowgraphics:udFdNect4I@185.240.121.143:50100",
+    "http": "http://henrywoowgraphics:udFdNect4I@89.116.56.101:50100",
+    "https": "http://henrywoowgraphics:udFdNect4I@89.116.56.101:50100",
 }
 
 url = "https://g58lko3etj-2.algolianet.com/1/indexes/production-inventory-global_price_asc/query?x-algolia-agent=Algolia%20for%20JavaScript%20(4.18.0)%3B%20Browser%20(lite)&x-algolia-api-key=cc3dce06acb2d9fc715bc10c9a624d80&x-algolia-application-id=G58LKO3ETJ"
