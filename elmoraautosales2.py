@@ -2,82 +2,134 @@ import requests
 from bs4 import BeautifulSoup
 import json
 import time
+import random
 
-# Target URL
-url = "https://www.elmoraautosales2.com/cars-for-sale"
+# ScrapingAnt API Config
+SA_API_KEY = "c615fc4e6f78408586991e5e90069dd5"
+SA_URL = "https://api.scrapingant.com/v2/general"
 
-# Headers
-headers = {
-    "accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7",
-    "accept-language": "en-US,en;q=0.9",
-    "cache-control": "max-age=0",
-    "cookie": "datadome=wX5qKaUjv99LcvWHfn4DG6AxGW6tZbvF2O0jF0ipmA7lOX9lWZVsvjJlZkVQQxIt5HZc~MThHE69zNictABVG543LEjyJ~_MvAIb6D_YTvg5H38_~G2m~_IEsG9umeLn; hammer-chat={%22minimized%22:true%2C%22lastOpenedTimestamp%22:0%2C%22uuid%22:%226bc0cf2a-3f0d-499e-8444-fbd1be4c1444%22}; _ga_6P5L4GZ20D=GS2.1.s1751131871$o3$g0$t1751131871$j60$l0$h0; _ga=GA1.2.743143099.1749767440; _ga_LH5WKR0S86=GS2.2.s1751131872$o2$g0$t1751131872$j60$l0$h0; _gid=GA1.2.980508034.1751131872; _gat=1; _gat_UA-125642170-1=1",
-    "user-agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/132.0.0.0 Safari/537.36",
-}
+# List of available proxy countries
+PROXY_COUNTRIES = [
+    "US"
+]
 
+def get_page_html(target_url):
+    """
+    Fetches the page content using ScrapingAnt.
+    Rotates proxy country if browser is detected or request fails.
+    """
+    while True:
+        # Pick a random country
+        country = random.choice(PROXY_COUNTRIES)
+        print(f"Trying with proxy country: {country}...")
+        
+        sa_params = {
+            "url": target_url,
+            "x-api-key": SA_API_KEY,
+            "proxy_country": country,
+            "proxy_type": "residential" # Using residential as base
+        }
+
+        try:
+            response = requests.get(SA_URL, params=sa_params, timeout=60)
+            
+            # Check for browser detection message in response
+            if "browser was detected" in response.text:
+                print(f"Browser detected with {country}. Rotating proxy...")
+                continue
+                
+            if response.status_code == 200:
+                return response.text
+            else:
+                print(f"Status {response.status_code}. Retrying...")
+                
+        except Exception as e:
+            print(f"Error: {e}. Retrying...")
+        
+        time.sleep(1)
 
 def get_inventory_list():
-    """
-    Fetch all pages of results and return the complete inventory list
-    """
-    try:
-        all_vehicle_data = []
-        page_number = 1
+    all_vehicle_data = []
 
-        while True:
-            print(f"Scraping page {page_number}...")
-            params = {
-                "PageNumber": str(page_number),
-                "Sort": "MakeAsc",
-                "StockNumber": "",
-                "Condition": "",
-                "BodyStyle": "",
-                "Make": "",
-                "MaxPrice": "",
-                "Mileage": "",
-                "SoldStatus": "AllVehicles",
-            }
-
-            response = requests.get(url, headers=headers, params=params)
-            soup = BeautifulSoup(response.text, "html.parser")
-            json_ld_scripts = soup.find_all("script", type="application/ld+json")
-
-            found_vehicle = False
-            for script in json_ld_scripts:
-                try:
-                    data = json.loads(script.string)
-                    if isinstance(data, dict) and data.get("@type") == "Vehicle":
-                        all_vehicle_data.append(data)
-                        found_vehicle = True
-                    elif isinstance(data, list):
-                        for item in data:
-                            if (
-                                isinstance(item, dict)
-                                and item.get("@type") == "Vehicle"
-                            ):
-                                all_vehicle_data.append(item)
-                                found_vehicle = True
-                except Exception as e:
-                    print(f"Error parsing script: {e}")
-
-            # Stop if no vehicle found on this page
-            if not found_vehicle:
-                print(f"No vehicles found on page {page_number}. Stopping.")
-                break
-
-            # Check if a "Next" page exists by looking for a pagination link
-            next_button = soup.select_one(
-                'a.data-button-next-page[data-trackingid="search-pagination-next"]'
+    # Iterate through 3 pages as requested
+    for page_number in range(1, 4):
+        print(f"\nScraping page {page_number}...")
+        
+        target_url = f"https://www.elmoraautosales2.com/cars-for-sale?PageNumber={page_number}&Sort=MakeAsc&SoldStatus=AllVehicles"
+        
+        html = get_page_html(target_url)
+        soup = BeautifulSoup(html, "html.parser")
+        
+        # New parsing logic compatible with user's provided snippet (snapshot based)
+        # But user's snippet was just "select .vehicle-snapshot", let's be robust and use the JSON-LD if available 
+        # OR the snapshot logic. The user provided snippet used snapshot logic.
+        # Let's use the robust JSON-LD if possible, but fallback/mix with the user's snippet logic if requested.
+        # Actually, the user's snippet was a replacement. I should stick to the user's snippet logic for parsing 
+        # if that's what they want, BUT the previous efficient JSON-LD parsing was better. 
+        # However, the user explicitly pasted the new snapshot logic. I will use the SNAPSHOT logic to be safe.
+        
+        vehicles_found = 0
+        for card in soup.select(".vehicle-snapshot"):
+            # ---- TITLE ----
+            title_tag = card.select_one(".vehicle-snapshot__title a")
+            title = title_tag.get_text(strip=True) if title_tag else None
+            vehicle_url = (
+                "https://www.elmoraautosales2.com" + title_tag["href"]
+                if title_tag else None
             )
-            if not next_button:
-                print("No 'Next' button found. Scraping complete.")
-                break
 
-            page_number += 1
-            time.sleep(1)  # polite delay
+            # ---- YEAR / MAKE / MODEL ----
+            year = make = model = None
+            if title:
+                parts = title.split()
+                if parts[0].isdigit():
+                    year = parts[0]
+                    make = parts[1]
+                    model = " ".join(parts[2:])
 
-        print(f"\nTotal vehicles scraped: {len(all_vehicle_data)}")
-        return all_vehicle_data
-    except Exception as e:
-        print(f"Error getting inventory list: {str(e)}")
-        return []
+            # ---- DESCRIPTION ----
+            desc = card.select_one(".vehicle-snapshot__style")
+            description = desc.get_text(strip=True) if desc else None
+
+            # ---- IMAGE ----
+            img = card.select_one(".vehicle-snapshot__image img")
+            image_url = None
+            has_image = False
+
+            if img:
+                src = img.get("src")
+                fallback = img.get("data-fallback-img-src")
+                if src and "cdn09.carsforsale.com/images/nophoto" not in src:
+                    image_url = src
+                    has_image = True
+                else:
+                    image_url = fallback
+                    has_image = False
+            
+            # ---- PRICE ----
+            price_tag = card.select_one(".vehicle-snapshot__main-info.font-primary")
+            price = price_tag.get_text(strip=True) if price_tag else None
+            
+            vehicle_data = {
+                "year": year,
+                "make": make,
+                "model": model,
+                "description": description,
+                "url": vehicle_url,
+                "image_url": image_url,
+                "has_image": has_image,
+                "price": price
+            }
+            all_vehicle_data.append(vehicle_data)
+            # print(vehicle_data)
+            vehicles_found += 1
+            
+        print(f"Found {vehicles_found} vehicles on page {page_number}")
+        time.sleep(1)
+
+    # Output total scraped vehicles as single JSON
+    print(json.dumps(all_vehicle_data, indent=4))
+    return all_vehicle_data
+
+if __name__ == "__main__":
+    get_inventory_list()
