@@ -1,207 +1,154 @@
 import requests
 from bs4 import BeautifulSoup
+import json
 import time
-from requests.adapters import HTTPAdapter
-from urllib3.util.retry import Retry
 
-# Base URL and settings
-base_url = "https://www.jrrmotorsales.com"
-DEFAULT_IMAGE_URL = (
-    "https://imagescdn.dealercarsearch.com/DealerImages/23149/23149_newarrivalphoto.jpg"
-)
+# ScrapingAnt API Config
+SA_API_KEY = "c615fc4e6f78408586991e5e90069dd5"
+SA_URL = "https://api.scrapingant.com/v2/general"
+BASE_URL = "https://www.jrrmotorsales.com"
 
-# Headers and proxy settings
-HEADERS = {
-    "user-agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/132.0.0.0 Safari/537.36",
-    "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8",
-    "Accept-Language": "en-US,en;q=0.5",
-    "Connection": "keep-alive",
-    "Upgrade-Insecure-Requests": "1",
-    "Sec-Fetch-Dest": "document",
-    "Sec-Fetch-Mode": "navigate",
-    "Sec-Fetch-Site": "none",
-    "Sec-Fetch-User": "?1",
-    "Cache-Control": "max-age=0",
-}
-
-PROXIES = {
-    "http": "http://henrywoowgraphics:udFdNect4I@89.116.56.101:50100",
-    "https": "http://henrywoowgraphics:udFdNect4I@89.116.56.101:50100",
-}
-
-
-def create_session():
+def get_page_html(target_url):
     """
-    Create a requests session with retry logic
+    Fetches the page content using ScrapingAnt.
     """
-    session = requests.Session()
+    retry_count = 0
+    max_retries = 10
+    
+    while retry_count < max_retries:
+        print(f"Requesting {target_url}...")
+        
+        sa_params = {
+            "url": target_url,
+            "x-api-key": SA_API_KEY,
+            "proxy_type": "residential",
+            "browser": "true"  # Try without browser first as it might be faster/cheaper, or match curl
+        }
 
-    # Configure retry strategy
-    retry_strategy = Retry(
-        total=3,  # number of retries
-        backoff_factor=1,  # wait 1, 2, 4 seconds between retries
-        status_forcelist=[500, 502, 503, 504],  # HTTP status codes to retry on
-    )
-
-    # Mount the adapter with retry strategy
-    adapter = HTTPAdapter(max_retries=retry_strategy)
-    session.mount("http://", adapter)
-    session.mount("https://", adapter)
-
-    return session
-
+        try:
+            # Using the curl command as reference, it's a simple GET
+            response = requests.get(SA_URL, params=sa_params, timeout=60)
+            
+            if response.status_code == 200:
+                if "Access Denied" in response.text:
+                     print(f"Access Denied content detected. Retrying...")
+                     time.sleep(2)
+                     retry_count += 1
+                     continue
+                return response.text
+            elif response.status_code == 429:
+                print("Rate limit reached. Waiting 5s...")
+                time.sleep(5)
+                # Don't increment retry count for rate limits, just wait
+            else:
+                print(f"Status {response.status_code}. Retrying...")
+                time.sleep(2)
+                retry_count += 1
+                
+        except Exception as e:
+            print(f"Error: {e}. Retrying...")
+            time.sleep(2)
+            retry_count += 1
+            
+    print(f"Failed to fetch {target_url} after {max_retries} retries.")
+    return None
 
 def get_inventory_list():
-    """
-    Fetch all pages of results and return the complete inventory list
-    """
-    try:
-        results = []
-        page = 1
-        session = create_session()
+    all_vehicle_data = []
 
-        while True:
-            url = f"{base_url}/inventory?page={page}"
-            print(f"Scraping Page {page}...")
-
+    # Iterate through 2 pages as requested
+    for page_number in range(1, 3):
+        print(f"\nScraping page {page_number}...")
+        
+        # URL from user request: https://www.jrrmotorsales.com/inventory?page=1&pageSize=100
+        target_url = f"{BASE_URL}/inventory?page={page_number}&pageSize=100"
+        
+        html = get_page_html(target_url)
+        if not html:
+            continue
+            
+        soup = BeautifulSoup(html, "html.parser")
+        
+        vehicles = soup.find_all("div", class_="invMainCell")
+        if not vehicles:
+            print(f"No vehicles found on page {page_number}.")
+            continue
+            
+        vehicles_found = 0
+        
+        for vehicle in vehicles:
             try:
-                response = session.get(
-                    url,
-                    headers=HEADERS,
-                    proxies=PROXIES,
-                    verify=False,  # Disable SSL verification
-                    timeout=30,
-                )
-                response.raise_for_status()
-            except requests.exceptions.RequestException as e:
-                print(f"Error fetching page {page}: {str(e)}")
-                time.sleep(5)  # Wait longer on error
+                # ---- IMAGE ----
+                img_div = vehicle.find("div", class_="i10r_image")
+                img_tag = img_div.find("img") if img_div else None
+                img_url = ""
+                if img_tag:
+                    img_url = img_tag.get("data-src") or img_tag.get("src")
+                
+                # ---- TITLE & LINK ----
+                info_div = vehicle.find("div", class_="i10r_mainWrap")
+                title_tag = info_div.find("h4", class_="i10r_vehicleTitle").find("a") if info_div else None
+                
+                title = title_tag.get_text(strip=True) if title_tag else "Unknown"
+                href = title_tag["href"] if title_tag else ""
+                full_link = f"{BASE_URL}{href}" if href and not href.startswith("http") else href
+
+                # ---- FEATURES ----
+                # Helper to extract text from labels
+                def get_feature(parent, cls_name):
+                    el = parent.find("p", class_=cls_name)
+                    if el:
+                        # Text could be "Label: Value", strip the label (e.g. "Color:")
+                        text = el.get_text(strip=True)
+                        if ":" in text:
+                            return text.split(":", 1)[1].strip()
+                        return text
+                    return None
+
+                if info_div:
+                    color = get_feature(info_div, "i10r_optColor")
+                    interior = get_feature(info_div, "i10r_optInterior")
+                    drive = get_feature(info_div, "i10r_optDrive")
+                    trans = get_feature(info_div, "i10r_optTrans")
+                    vin = get_feature(info_div, "i10r_optVin")
+                    engine = get_feature(info_div, "i10r_optEngine")
+                    mileage = get_feature(info_div, "i10r_optMileage")
+                    stock = get_feature(info_div, "i10r_optStock")
+                    
+                    # ---- PRICE ----
+                    price_tag = info_div.find("span", class_="price-2")
+                    price = price_tag.get_text(strip=True) if price_tag else None
+                else:
+                    color = interior = drive = trans = vin = engine = mileage = stock = price = None
+
+                vehicle_data = {
+                    "title": title,
+                    "url": full_link,
+                    "image": img_url,
+                    "price": price,
+                    "mileage": mileage,
+                    "stock": stock,
+                    "vin": vin,
+                    "engine": engine,
+                    "transmission": trans,
+                    "drivetrain": drive,
+                    "exterior_color": color,
+                    "interior_color": interior
+                }
+                
+                all_vehicle_data.append(vehicle_data)
+                vehicles_found += 1
+                
+            except Exception as e:
+                print(f"Error parsing vehicle: {e}")
                 continue
 
-            soup = BeautifulSoup(response.text, "html.parser")
+        print(f"Found {vehicles_found} vehicles on page {page_number}")
+        time.sleep(1)
 
-            vehicles = soup.find_all("div", class_="invMainCell")
-            if not vehicles:
-                print("No vehicles found. Stopping.")
-                break
+    # Output total scraped vehicles as single JSON
+    print(json.dumps(all_vehicle_data, indent=4))
+    return all_vehicle_data
 
-            for vehicle in vehicles:
-                try:
-                    # Get image
-                    img_div = vehicle.find("div", class_="i10r_image")
-                    img_tag = img_div.find("img")
-                    img_url = (
-                        img_tag.get("data-src") or img_tag.get("src") if img_tag else ""
-                    )
-                    print(img_url)
-
-                    if img_url == DEFAULT_IMAGE_URL:
-                        continue  # Skip default image listings
-
-                    # Get vehicle title & link
-                    info_div = vehicle.find("div", class_="i10r_mainWrap")
-                    title_tag = info_div.find("h4", class_="i10r_vehicleTitle").find(
-                        "a"
-                    )
-                    title = title_tag.get_text(strip=True)
-                    href = title_tag["href"]
-
-                    # Get all feature blocks
-                    feature_blocks = info_div.find_all("div", class_="i10r_features")
-
-                    color = (
-                        feature_blocks[0]
-                        .find("p", class_="i10r_optColor")
-                        .get_text(strip=True)
-                        .split(":", 1)[-1]
-                        .strip()
-                    )
-                    interior = (
-                        feature_blocks[0]
-                        .find("p", class_="i10r_optInterior")
-                        .get_text(strip=True)
-                        .split(":", 1)[-1]
-                        .strip()
-                    )
-                    drive = (
-                        feature_blocks[0]
-                        .find("p", class_="i10r_optDrive")
-                        .get_text(strip=True)
-                        .split(":", 1)[-1]
-                        .strip()
-                    )
-                    trans = (
-                        feature_blocks[0]
-                        .find("p", class_="i10r_optTrans")
-                        .get_text(strip=True)
-                        .split(":", 1)[-1]
-                        .strip()
-                    )
-
-                    vin = (
-                        feature_blocks[1]
-                        .find("p", class_="i10r_optVin")
-                        .get_text(strip=True)
-                        .split(":", 1)[-1]
-                        .strip()
-                    )
-                    engine = (
-                        feature_blocks[1]
-                        .find("p", class_="i10r_optEngine")
-                        .get_text(strip=True)
-                        .split(":", 1)[-1]
-                        .strip()
-                    )
-                    mileage = (
-                        feature_blocks[1]
-                        .find("p", class_="i10r_optMileage")
-                        .get_text(strip=True)
-                        .split(":", 1)[-1]
-                        .strip()
-                    )
-                    stock = (
-                        feature_blocks[1]
-                        .find("p", class_="i10r_optStock")
-                        .get_text(strip=True)
-                        .split(":", 1)[-1]
-                        .strip()
-                    )
-
-                    # Price
-                    price = info_div.find("span", class_="price-2").get_text(strip=True)
-
-                    results.append(
-                        {
-                            "title": title,
-                            "link": f"{base_url}{href}",
-                            "color": color,
-                            "interior": interior,
-                            "drive": drive,
-                            "transmission": trans,
-                            "vin": vin,
-                            "engine": engine,
-                            "mileage": mileage,
-                            "stock": stock,
-                            "price": price,
-                            "image": img_url,
-                        }
-                    )
-
-                except Exception as e:
-                    print(f"Error parsing vehicle: {str(e)}")
-
-            # Pagination logic
-            next_btn = soup.find("button", {"aria-label": "Next"})
-            if next_btn and "disabled" not in next_btn.get("class", []):
-                page += 1
-                time.sleep(2)  # Increased delay between pages
-            else:
-                print("No more pages.")
-                break
-
-        print(f"\nTotal vehicles scraped: {len(results)}")
-        return results
-
-    except Exception as e:
-        print(f"Error getting inventory list: {str(e)}")
-        return []
+if __name__ == "__main__":
+    get_inventory_list()
