@@ -23,6 +23,7 @@ from mass_motors import get_inventory_list as get_mass_motors_list
 from motorsports_4042 import get_inventory_list as get_motorsports_4042_list
 from pujolsautosale import get_inventory_list as get_pujolsautosale_list
 from courtesymitsubishi import get_courtesymitsubishi_list
+from m2mmotors import get_inventory_list as get_m2mmotors_list
 
 app = FastAPI()
 
@@ -33,8 +34,8 @@ HEADERS = {
 }
 
 PROXIES = {
-    "http": "http://henrywoowgraphics:udFdNect4I@89.116.56.101:50100",
-    "https": "http://henrywoowgraphics:udFdNect4I@89.116.56.101:50100",
+    "http": "http://henrywoowgraphics:udFdNect4I@185.240.121.143:50100",
+    "https": "http://henrywoowgraphics:udFdNect4I@185.240.121.143:50100",
 }
 
 total_vehicles_count = get_total_vehicle_count()
@@ -133,6 +134,13 @@ class PujolsAutoSaleRequest(BaseModel):
 
 
 class CourtesyMitsubishiRequest(BaseModel):
+    password: str
+
+    class Config:
+        json_schema_extra = {"example": {"password": "0724"}}
+
+
+class M2MCarsRequest(BaseModel):
     password: str
 
     class Config:
@@ -390,3 +398,13 @@ async def get_courtesymitsubishi_inventory(request: CourtesyMitsubishiRequest):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
+
+@app.post("/m2mmotors")
+async def get_m2mmotors_inventory(request: M2MCarsRequest):
+    if request.password != "0724":
+        raise HTTPException(status_code=401, detail="Invalid password")
+    try:
+        inventory = get_m2mmotors_list()
+        return {"inventory": inventory}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
