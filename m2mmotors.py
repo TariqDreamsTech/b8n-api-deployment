@@ -50,10 +50,10 @@ def get_inventory_list():
     all_vehicle_data = []
 
     # Iterate through 9 pages as requested
-    for page_number in range(1, 10):
+    for page_number in range(1, 3):
         print(f"\nScraping page {page_number}...")
         
-        target_url = f"https://www.m2mcars.com/inventory?perpage=24&page_no={page_number}"
+        target_url = f"https://www.m2mcars.com/inventory?perpage=100&page_no={page_number}"
         
         html = get_page_html(target_url)
         soup = BeautifulSoup(html, "html.parser")
