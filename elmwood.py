@@ -22,7 +22,7 @@ def get_page_html(target_url):
             "url": target_url,
             "x-api-key": SA_API_KEY,
             "proxy_type": "residential",
-            "browser": "false" 
+            "browser": "true" 
         }
 
         try:
