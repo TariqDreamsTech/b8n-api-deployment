@@ -49,80 +49,96 @@ def get_page_html(target_url):
 def get_inventory_list():
     all_vehicle_data = []
 
-    # Iterate through 9 pages as requested
+    # Iterate through 3 pages as requested (or 2 as per diffs, let's stick to what was there or ensure safety)
+    # The user manual edit showed range(1, 3). I will respect that if it was persistent. 
+    # Actually I will match the TargetContent which says range(1, 3) because of the user diff.
     for page_number in range(1, 3):
-        print(f"\nScraping page {page_number}...")
+        page_retries = 0
+        max_page_retries = 5
         
-        target_url = f"https://www.m2mcars.com/inventory?perpage=100&page_no={page_number}"
-        
-        html = get_page_html(target_url)
-        soup = BeautifulSoup(html, "html.parser")
-        
-        vehicles_found = 0
-        
-        inventory_items = soup.select("div.vehicle-container")
-        
-        for item in inventory_items:
-            # ---- VIN ----
-            vin_data = item.get("data-vehicle-id")
-            vin = vin_data.replace("vehicle-id-", "") if vin_data else None
-
-            # ---- TITLE & URL ----
-            title_tag = item.select_one("a.vehicle-title")
-            title = title_tag.get_text(strip=True) if title_tag else None
-            vehicle_url = title_tag.get("href") if title_tag else None
-            if vehicle_url and not vehicle_url.startswith("http"):
-                vehicle_url = "https://www.m2mcars.com" + vehicle_url
-
-            # ---- PRICE ----
-            price_tag = item.select_one(".vehicle-price-value")
-            price = price_tag.get_text(strip=True) if price_tag else None
-
-            # ---- STOCK NUMBER ----
-            stock_tag = item.select_one(".vehicle-field-stocknumber .vehicle-info-value")
-            stock_no = stock_tag.get_text(strip=True) if stock_tag else None
-
-            # ---- MILEAGE ----
-            mileage_tag = item.select_one(".vehicle-field-odometer .vehicle-info-value")
-            mileage = mileage_tag.get_text(strip=True) if mileage_tag else None
-
-            # ---- DRIVETRAIN ----
-            drivetrain_tag = item.select_one(".vehicle-field-drivetrain .vehicle-info-value")
-            drivetrain = drivetrain_tag.get_text(strip=True) if drivetrain_tag else None
+        while page_retries < max_page_retries:
+            print(f"\nScraping page {page_number} (Attempt {page_retries + 1})...")
             
-            # ---- IMAGE ----
-            img_tag = item.select_one("img.vehicle-image")
-            image_url = img_tag.get("src") if img_tag else None
+            target_url = f"https://www.m2mcars.com/inventory?perpage=100&page_no={page_number}"
+            
+            html = get_page_html(target_url)
+            if not html:
+                page_retries += 1
+                continue
+                
+            soup = BeautifulSoup(html, "html.parser")
+            
+            inventory_items = soup.select("div.vehicle-container")
+            if not inventory_items:
+                print(f"Found 0 vehicles on page {page_number}. Retrying...")
+                page_retries += 1
+                time.sleep(3)
+                continue
+            
+            vehicles_found = 0
+            
+            for item in inventory_items:
+                # ---- VIN ----
+                vin_data = item.get("data-vehicle-id")
+                vin = vin_data.replace("vehicle-id-", "") if vin_data else None
 
-            # ---- YEAR / MAKE / MODEL Parsing ----
-            year = make = model = None
-            if title:
-                parts = title.split()
-                if len(parts) >= 2 and parts[0].isdigit():
-                    year = parts[0]
-                    make = parts[1]
-                    model = " ".join(parts[2:])
+                # ---- TITLE & URL ----
+                title_tag = item.select_one("a.vehicle-title")
+                title = title_tag.get_text(strip=True) if title_tag else None
+                vehicle_url = title_tag.get("href") if title_tag else None
+                if vehicle_url and not vehicle_url.startswith("http"):
+                    vehicle_url = "https://www.m2mcars.com" + vehicle_url
 
-            
-            vehicle_data = {
-                "title": title,
-                "year": year,
-                "make": make,
-                "model": model,
-                "price": price,
-                "stock_no": stock_no,
-                "vin": vin,
-                "mileage": mileage,
-                "drivetrain": drivetrain,
-                "image_url": image_url,
-                "vehicle_url": vehicle_url
-            }
-            
-            all_vehicle_data.append(vehicle_data)
-            vehicles_found += 1
-            
-        print(f"Found {vehicles_found} vehicles on page {page_number}")
-        time.sleep(1)
+                # ---- PRICE ----
+                price_tag = item.select_one(".vehicle-price-value")
+                price = price_tag.get_text(strip=True) if price_tag else None
+
+                # ---- STOCK NUMBER ----
+                stock_tag = item.select_one(".vehicle-field-stocknumber .vehicle-info-value")
+                stock_no = stock_tag.get_text(strip=True) if stock_tag else None
+
+                # ---- MILEAGE ----
+                mileage_tag = item.select_one(".vehicle-field-odometer .vehicle-info-value")
+                mileage = mileage_tag.get_text(strip=True) if mileage_tag else None
+
+                # ---- DRIVETRAIN ----
+                drivetrain_tag = item.select_one(".vehicle-field-drivetrain .vehicle-info-value")
+                drivetrain = drivetrain_tag.get_text(strip=True) if drivetrain_tag else None
+                
+                # ---- IMAGE ----
+                img_tag = item.select_one("img.vehicle-image")
+                image_url = img_tag.get("src") if img_tag else None
+
+                # ---- YEAR / MAKE / MODEL Parsing ----
+                year = make = model = None
+                if title:
+                    parts = title.split()
+                    if len(parts) >= 2 and parts[0].isdigit():
+                        year = parts[0]
+                        make = parts[1]
+                        model = " ".join(parts[2:])
+
+                
+                vehicle_data = {
+                    "title": title,
+                    "year": year,
+                    "make": make,
+                    "model": model,
+                    "price": price,
+                    "stock_no": stock_no,
+                    "vin": vin,
+                    "mileage": mileage,
+                    "drivetrain": drivetrain,
+                    "image_url": image_url,
+                    "vehicle_url": vehicle_url
+                }
+                
+                all_vehicle_data.append(vehicle_data)
+                vehicles_found += 1
+                
+            print(f"Found {vehicles_found} vehicles on page {page_number}")
+            time.sleep(1)
+            break # Exit retry loop
 
     print(json.dumps(all_vehicle_data, indent=4))
     return all_vehicle_data
