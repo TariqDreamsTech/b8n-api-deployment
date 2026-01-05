@@ -8,10 +8,6 @@ import random
 SA_API_KEY = "c615fc4e6f78408586991e5e90069dd5"
 SA_URL = "https://api.scrapingant.com/v2/general"
 
-# List of available proxy countries
-PROXY_COUNTRIES = [
-    "US"
-]
 
 def get_page_html(target_url):
     """
@@ -19,14 +15,10 @@ def get_page_html(target_url):
     Rotates proxy country if browser is detected or request fails.
     """
     while True:
-        # Pick a random country
-        country = random.choice(PROXY_COUNTRIES)
-        print(f"Trying with proxy country: {country}...")
         
         sa_params = {
             "url": target_url,
             "x-api-key": SA_API_KEY,
-            "proxy_country": country,
             "proxy_type": "residential" # Using residential as base
         }
 
