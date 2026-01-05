@@ -19,7 +19,8 @@ def get_page_html(target_url):
         sa_params = {
             "url": target_url,
             "x-api-key": SA_API_KEY,
-            "proxy_type": "residential" # Using residential as base
+            "proxy_type": "residential", # Using residential as base
+            "browser": "true"
         }
 
         try:
