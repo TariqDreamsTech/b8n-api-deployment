@@ -27,7 +27,7 @@ def get_page_html(target_url):
             
             # Check for browser detection message in response
             if "browser was detected" in response.text:
-                print(f"Browser detected with {country}. Rotating proxy...")
+                print(f"Browser detected with. Rotating proxy...")
                 continue
                 
             if response.status_code == 200:
