@@ -148,6 +148,7 @@ def get_inventory_list():
     output_json = json.dumps(all_vehicle_data, indent=4)
     print(output_json)
     
+    return all_vehicle_data
 
 if __name__ == "__main__":
     get_inventory_list()
