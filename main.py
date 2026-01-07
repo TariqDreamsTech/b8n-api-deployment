@@ -24,6 +24,7 @@ from motorsports_4042 import get_inventory_list as get_motorsports_4042_list
 from pujolsautosale import get_inventory_list as get_pujolsautosale_list
 from courtesymitsubishi import get_courtesymitsubishi_list
 from m2mmotors import get_inventory_list as get_m2mmotors_list
+from mmautosales2 import get_inventory_list as get_mmautosales2_list
 
 app = FastAPI()
 
@@ -141,6 +142,13 @@ class CourtesyMitsubishiRequest(BaseModel):
 
 
 class M2MCarsRequest(BaseModel):
+    password: str
+
+    class Config:
+        json_schema_extra = {"example": {"password": "0724"}}
+
+
+class MMAAutoSales2Request(BaseModel):
     password: str
 
     class Config:
@@ -405,6 +413,17 @@ async def get_m2mmotors_inventory(request: M2MCarsRequest):
         raise HTTPException(status_code=401, detail="Invalid password")
     try:
         inventory = get_m2mmotors_list()
+        return {"inventory": inventory}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.post("/mmautosales2")
+async def get_mmautosales2_inventory(request: MMAAutoSales2Request):
+    if request.password != "0724":
+        raise HTTPException(status_code=401, detail="Invalid password")
+    try:
+        inventory = get_mmautosales2_list()
         return {"inventory": inventory}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
