@@ -123,11 +123,17 @@ def get_inventory_list():
                  # Handle fallback or empty src if needed? usually src is good here.
             
             
+            # ---- PRICE ----
+            # <h2 class="lblPrice lblPriceH2 ">$12,500</h2>
+            price_tag = card.select_one("h2.lblPrice")
+            price = price_tag.get_text(strip=True) if price_tag else None
+
             if full_title: # Only add if we got a title at least
                 vehicle_data = {
                     "year": year,
                     "make": make,
                     "model": model,
+                    "price": price,
                     "vehicle_url": vehicle_url,
                     "image_url": image_url
                 }
